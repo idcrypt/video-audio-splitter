@@ -1,4 +1,3 @@
-/* General dark theme */
 body {
   background: #0a0a0f;
   color: #e0e0ff;
@@ -25,9 +24,12 @@ p {
   box-shadow: 0 0 25px rgba(178, 107, 255, 0.3);
 }
 
-/* Buttons */
+.buttons {
+  margin-top: 15px;
+}
+
 button {
-  margin: 15px;
+  margin: 10px;
   padding: 12px 25px;
   border: none;
   border-radius: 8px;
@@ -88,7 +90,6 @@ button:hover {
   line-height: 25px;
 }
 
-/* Hidden helper */
 .hidden {
   display: none;
 }
