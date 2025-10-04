@@ -2,7 +2,7 @@
 // <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js"></script>
 // <script src="script.js"></script>
 
-const { createFFmpeg, fetchFile } = window.FFmpeg;
+const { createFFmpeg, fetchFile } = window.FFmpeg || {};
 
 // Inisialisasi FFmpeg
 const ffmpeg = createFFmpeg({
