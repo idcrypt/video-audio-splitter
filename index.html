@@ -9,12 +9,18 @@
 <body>
   <div class="container">
     <h1 class="neon-text">⚡ Video Audio Splitter ⚡</h1>
-    <p>Upload your video and split into audio & video with neon vibes.</p>
+    <p>Upload your video and split it into audio & video with pure neon vibes.</p>
     
     <input type="file" id="uploader" accept="video/*">
     <button id="processBtn" class="neon-btn">Split Video & Audio</button>
     
     <div id="loading" class="hidden neon-text">⏳ Processing... Please wait</div>
+    
+    <!-- Progress bar -->
+    <div id="progress-container" class="hidden">
+      <div id="progress-bar"></div>
+      <span id="progress-text">0%</span>
+    </div>
     
     <div id="results" class="hidden">
       <a id="downloadAudio" class="neon-link" download="audio.mp3">⬇️ Download Audio</a>
