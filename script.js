@@ -2,21 +2,21 @@
 // script.js — Self-hosted single-thread only
 // ==============================
 
-// Ambil global FFmpeg dari UMD resmi
-const ffmpegGlobal = window.FFmpegWASM?.FFmpeg || window.FFmpegWASM || window.FFmpeg;
+// Ambil dari global UMD build
+const ffmpegGlobal = window.FFmpegWASM || window.FFmpeg || window.FFmpegWasm;
 if (!ffmpegGlobal) {
-    alert("FFmpeg library not found. Pastikan ./libs/ffmpeg.js sudah di-load.");
-    throw new Error("FFmpeg global not found");
+  alert("FFmpeg library not found. Make sure ./libs/ffmpeg.js is loaded first");
+  throw new Error("FFmpeg global not found");
 }
 
-// Destructuring
+// Destructuring dari global
 const { createFFmpeg, fetchFile } = ffmpegGlobal;
 
-// Paths untuk self-hosted
+// Inisialisasi instance (single-thread, self-hosted)
 const ffmpeg = createFFmpeg({
-    log: true,
-    corePath: "./libs/ffmpeg-core.js",
-    wasmPath: "./libs/ffmpeg-core.wasm",
+  log: true,
+  corePath: "./libs/ffmpeg-core.js",
+  wasmPath: "./libs/ffmpeg-core.wasm"
 });
 
 // ==============================
