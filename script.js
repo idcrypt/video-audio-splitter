@@ -1,10 +1,19 @@
-const { createFFmpeg, fetchFile } = FFmpeg;
+// Pastikan ffmpeg.js UMD sudah dimuat dulu di index.html:
+// <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js"></script>
+// <script src="script.js"></script>
 
+const { createFFmpeg, fetchFile } = window.FFmpeg;
+
+// Inisialisasi FFmpeg
 const ffmpeg = createFFmpeg({
   log: true,
-  corePath: "./libs/ffmpeg-core.js", // arahkan ke lokal
+  progress: ({ ratio }) => {
+    const percent = Math.round(ratio * 100);
+    updateProgress(percent);
+  },
 });
 
+// DOM elements
 const uploader = document.getElementById("uploader");
 const extractAudioBtn = document.getElementById("extractAudioBtn");
 const extractVideoBtn = document.getElementById("extractVideoBtn");
@@ -15,62 +24,87 @@ const progressText = document.getElementById("progress-text");
 const output = document.getElementById("output");
 const downloadLink = document.getElementById("downloadLink");
 
-function showLoader() {
-  loader.classList.remove("hidden");
-  progressContainer.classList.remove("hidden");
-  output.classList.add("hidden");
-}
-function hideLoader() {
-  loader.classList.add("hidden");
-  progressContainer.classList.add("hidden");
-}
-function updateProgress(ratio) {
-  const percent = Math.round(ratio * 100);
+let uploadedFile = null;
+
+// Upload file
+uploader.addEventListener("change", (e) => {
+  uploadedFile = e.target.files[0];
+  if (uploadedFile) {
+    console.log("File siap:", uploadedFile.name);
+  }
+});
+
+// Update progress UI
+function updateProgress(percent) {
   progressBar.style.width = percent + "%";
   progressText.innerText = percent + "%";
 }
 
-ffmpeg.setProgress(({ ratio }) => updateProgress(ratio));
+// Show / Hide loader
+function showLoader() {
+  loader.classList.remove("hidden");
+  progressContainer.classList.remove("hidden");
+  output.classList.add("hidden");
+  updateProgress(0);
+}
 
-async function loadFFmpeg() {
-  if (!ffmpeg.isLoaded()) {
-    showLoader();
-    await ffmpeg.load();
+function hideLoader() {
+  loader.classList.add("hidden");
+  progressContainer.classList.add("hidden");
+}
+
+// Extract audio (MP3)
+extractAudioBtn.addEventListener("click", async () => {
+  if (!uploadedFile) {
+    alert("Upload video dulu!");
+    return;
+  }
+  await processFile("audio");
+});
+
+// Extract video tanpa audio (mute)
+extractVideoBtn.addEventListener("click", async () => {
+  if (!uploadedFile) {
+    alert("Upload video dulu!");
+    return;
+  }
+  await processFile("video");
+});
+
+// Main process
+async function processFile(mode) {
+  showLoader();
+
+  try {
+    if (!ffmpeg.isLoaded()) {
+      console.log("Loading ffmpeg-core...");
+      await ffmpeg.load();
+    }
+
+    // Masukkan file ke virtual FS
+    ffmpeg.FS("writeFile", uploadedFile.name, await fetchFile(uploadedFile));
+
+    let outputName;
+    if (mode === "audio") {
+      outputName = "output.mp3";
+      await ffmpeg.run("-i", uploadedFile.name, "-q:a", "0", "-map", "a", outputName);
+    } else {
+      outputName = "output.mp4";
+      await ffmpeg.run("-i", uploadedFile.name, "-an", outputName);
+    }
+
+    // Ambil hasil
+    const data = ffmpeg.FS("readFile", outputName);
+    const url = URL.createObjectURL(new Blob([data.buffer], { type: mode === "audio" ? "audio/mp3" : "video/mp4" }));
+
+    downloadLink.href = url;
+    downloadLink.download = outputName;
+    output.classList.remove("hidden");
+
+  } catch (err) {
+    console.error("Error:", err);
+    alert("Terjadi kesalahan saat proses.");
+  } finally {
     hideLoader();
   }
 }
-
-async function extract(type) {
-  const file = uploader.files[0];
-  if (!file) {
-    alert("Please upload a video first.");
-    return;
-  }
-
-  await loadFFmpeg();
-  showLoader();
-
-  const inputName = "input.mp4";
-  const outputName = type === "audio" ? "output.mp3" : "output.mp4";
-
-  ffmpeg.FS("writeFile", inputName, await fetchFile(file));
-
-  if (type === "audio") {
-    await ffmpeg.run("-i", inputName, "-q:a", "0", "-map", "a", outputName);
-  } else {
-    await ffmpeg.run("-i", inputName, "-an", outputName);
-  }
-
-  const data = ffmpeg.FS("readFile", outputName);
-  const blob = new Blob([data.buffer], {
-    type: type === "audio" ? "audio/mpeg" : "video/mp4",
-  });
-  downloadLink.href = URL.createObjectURL(blob);
-  downloadLink.download = outputName;
-
-  hideLoader();
-  output.classList.remove("hidden");
-}
-
-extractAudioBtn.addEventListener("click", () => extract("audio"));
-extractVideoBtn.addEventListener("click", () => extract("video"));
