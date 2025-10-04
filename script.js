@@ -1,10 +1,7 @@
-// Pastikan ffmpeg.js UMD sudah dimuat dulu di index.html:
-// <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js"></script>
-// <script src="script.js"></script>
+// ambil API dari global UMD
+const { createFFmpeg, fetchFile } = window.FFmpeg;
 
-const { createFFmpeg, fetchFile } = window.FFmpeg || {};
-
-// Inisialisasi FFmpeg
+// inisialisasi
 const ffmpeg = createFFmpeg({
   log: true,
   progress: ({ ratio }) => {
