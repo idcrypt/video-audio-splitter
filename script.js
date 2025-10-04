@@ -2,7 +2,8 @@ const { createFFmpeg, fetchFile } = FFmpeg;
 const ffmpeg = createFFmpeg({ log: true, corePath: './libs/ffmpeg-core.js' });
 
 const uploader = document.getElementById('uploader');
-const splitBtn = document.getElementById('splitBtn');
+const extractAudioBtn = document.getElementById('extractAudioBtn');
+const extractVideoBtn = document.getElementById('extractVideoBtn');
 const loader = document.getElementById('loader');
 const progressContainer = document.getElementById('progress-container');
 const progressBar = document.getElementById('progress-bar');
@@ -10,7 +11,8 @@ const progressText = document.getElementById('progress-text');
 const output = document.getElementById('output');
 const downloadLink = document.getElementById('downloadLink');
 
-splitBtn.addEventListener('click', async () => {
+// Helper: run FFmpeg with command
+async function runFFmpeg(cmd, outFile, mime) {
   if (!uploader.files.length) {
     alert('Please select a video file first.');
     return;
@@ -18,17 +20,17 @@ splitBtn.addEventListener('click', async () => {
 
   const file = uploader.files[0];
 
-  // Show loader
+  // Reset UI
   loader.classList.remove('hidden');
   progressContainer.classList.add('hidden');
   output.classList.add('hidden');
 
-  // Load FFmpeg if not ready
+  // Load FFmpeg if not yet loaded
   if (!ffmpeg.isLoaded()) {
     await ffmpeg.load();
   }
 
-  // Hide loader, show progress bar
+  // Hide loader, show progress
   loader.classList.add('hidden');
   progressContainer.classList.remove('hidden');
 
@@ -38,18 +40,28 @@ splitBtn.addEventListener('click', async () => {
     progressText.textContent = percent + '%';
   });
 
-  // Write input file
+  // Write input
   ffmpeg.FS('writeFile', file.name, await fetchFile(file));
 
-  // Run FFmpeg command (extract audio only)
-  await ffmpeg.run('-i', file.name, '-vn', '-acodec', 'mp3', 'output.mp3');
+  // Run command
+  await ffmpeg.run('-i', file.name, ...cmd, outFile);
 
-  // Read the result
-  const data = ffmpeg.FS('readFile', 'output.mp3');
-  const url = URL.createObjectURL(new Blob([data.buffer], { type: 'audio/mp3' }));
+  // Read result
+  const data = ffmpeg.FS('readFile', outFile);
+  const url = URL.createObjectURL(new Blob([data.buffer], { type: mime }));
 
-  // Show download link
+  // Show download
   progressContainer.classList.add('hidden');
   output.classList.remove('hidden');
   downloadLink.href = url;
+  downloadLink.download = outFile;
+}
+
+// Button actions
+extractAudioBtn.addEventListener('click', () => {
+  runFFmpeg(['-vn', '-acodec', 'mp3'], 'output.mp3', 'audio/mp3');
+});
+
+extractVideoBtn.addEventListener('click', () => {
+  runFFmpeg(['-an', '-vcodec', 'copy'], 'output.mp4', 'video/mp4');
 });
