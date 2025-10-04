@@ -2,23 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Video Audio Splitter</title>
+  <title>Neon Video Audio Splitter</title>
   <link rel="stylesheet" href="style.css">
   <script src="./libs/ffmpeg.js"></script>
 </head>
 <body>
   <div class="container">
-    <h1>🎬 Video Audio Splitter</h1>
-    <p>Upload your video and split into audio & video without sound.</p>
+    <h1 class="neon-text">⚡ Video Audio Splitter ⚡</h1>
+    <p>Upload your video and split into audio & video with neon vibes.</p>
     
     <input type="file" id="uploader" accept="video/*">
-    <button id="processBtn">Split Video & Audio</button>
+    <button id="processBtn" class="neon-btn">Split Video & Audio</button>
     
-    <div id="loading" class="hidden">⏳ Processing... Please wait</div>
+    <div id="loading" class="hidden neon-text">⏳ Processing... Please wait</div>
     
     <div id="results" class="hidden">
-      <a id="downloadAudio" download="audio.mp3">⬇️ Download Audio</a>
-      <a id="downloadVideo" download="video.mp4">⬇️ Download Video</a>
+      <a id="downloadAudio" class="neon-link" download="audio.mp3">⬇️ Download Audio</a>
+      <a id="downloadVideo" class="neon-link" download="video.mp4">⬇️ Download Video</a>
     </div>
   </div>
   
