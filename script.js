@@ -1,17 +1,21 @@
-// Get UMD global
-const ffmpegGlobal = window.FFmpegWASM || window.FFmpeg || window.ffmpeg;
+// Robust single-thread fallback FFmpeg for GitHub Pages
+// Self-hosted: expects libs/ffmpeg.js, ffmpeg-core.js, ffmpeg-core.wasm
+// Worker optional, will fallback automatically if unavailable
+
+const ffmpegGlobal = window.FFmpegWASM || window.FFmpeg || window.FFmpegWasm || window.ffmpeg || window.FFmpegWASM?.FFmpeg;
 if (!ffmpegGlobal) {
-  alert("FFmpeg library not found. Ensure ./libs/ffmpeg.js is loaded before script.js");
-  throw new Error("FFmpeg global not found");
+    alert("FFmpeg library not found. Make sure ./libs/ffmpeg.js is loaded before script.js");
+    throw new Error("FFmpeg global not found");
 }
+
 const { createFFmpeg, fetchFile } = ffmpegGlobal;
 
-// Paths (self-hosted)
+// Paths
 const CORE_JS = "./libs/ffmpeg-core.js";
 const CORE_WASM = "./libs/ffmpeg-core.wasm";
-const CORE_WORKER = "./libs/ffmpeg-core.worker.js";
+const CORE_WORKER = "./libs/ffmpeg-core.worker.js"; // optional, not used on GitHub Pages
 
-// UI elements
+// UI refs
 const uploader = document.getElementById("uploader");
 const fileNameEl = document.getElementById("fileName");
 const extractAudioBtn = document.getElementById("extractAudioBtn");
@@ -29,92 +33,119 @@ const coopNote = document.getElementById("coopNote");
 let ffmpeg = null;
 let currentFile = null;
 
-// Helpers
+// ===== Helpers =====
 function showLoader() { loader.classList.remove("hidden"); progressWrap.classList.remove("hidden"); updateProgress(0); }
 function hideLoader() { loader.classList.add("hidden"); progressWrap.classList.add("hidden"); }
-function updateProgress(p) { progressBar.style.width = p + "%"; progressText.textContent = p + "%"; }
-function showNotice(msg, t=5000) { notice.textContent = msg; notice.classList.remove("hidden"); setTimeout(()=>notice.classList.add("hidden"), t); }
-function resetResults() { linksWrap.innerHTML=""; results.classList.add("hidden"); }
+function updateProgress(percent) { progressBar.style.width = percent + "%"; progressText.textContent = percent + "%"; }
+function showNotice(msg, timeout = 4000) { notice.textContent = msg; notice.classList.remove("hidden"); if (timeout) setTimeout(() => notice.classList.add("hidden"), timeout); }
+function resetResults() { linksWrap.innerHTML = ""; results.classList.add("hidden"); }
 
-// FFmpeg init
+// ===== File input =====
+uploader.addEventListener("change", (e) => {
+    currentFile = e.target.files[0] || null;
+    fileNameEl.textContent = currentFile ? currentFile.name : "No file chosen";
+    resetResults();
+});
+
+clearBtn.addEventListener("click", () => {
+    uploader.value = "";
+    currentFile = null;
+    fileNameEl.textContent = "No file chosen";
+    resetResults();
+    notice.classList.add("hidden");
+});
+
+// ===== FFmpeg init =====
 async function loadFFmpeg() {
-  if(ffmpeg && ffmpeg.isLoaded()) return ffmpeg;
-  ffmpeg = createFFmpeg({ log:true, corePath:CORE_JS, wasmPath:CORE_WASM, workerPath:CORE_WORKER });
-  showLoader(); showNotice("Loading FFmpeg...");
-  await ffmpeg.load();
-  hideLoader();
-  showNotice("FFmpeg loaded ✅",3000);
-  return ffmpeg;
+    if (ffmpeg && ffmpeg.isLoaded()) return ffmpeg;
+
+    showLoader();
+    showNotice("Loading FFmpeg (single-thread)...");
+
+    ffmpeg = createFFmpeg({
+        log: true,
+        corePath: CORE_JS,
+        wasmPath: CORE_WASM,
+        // workerPath intentionally skipped for GitHub Pages
+    });
+
+    try {
+        await ffmpeg.load();
+        showNotice("FFmpeg loaded ✅", 3000);
+        hideLoader();
+        return ffmpeg;
+    } catch (err) {
+        hideLoader();
+        console.error("FFmpeg load failed:", err);
+        showNotice("FFmpeg failed to load. Check console.", 6000);
+        throw err;
+    }
 }
 
-// Uploader
-uploader.addEventListener("change", (e)=>{
-  currentFile = e.target.files[0];
-  fileNameEl.textContent = currentFile ? currentFile.name : "No file chosen";
-  resetResults();
-});
-
-// Clear button
-clearBtn.addEventListener("click", ()=>{
-  uploader.value=""; currentFile=null;
-  fileNameEl.textContent="No file chosen"; resetResults();
-});
-
-// Progress hookup
+// ===== Progress hookup =====
 function attachProgress() {
-  ffmpeg.setProgress(({ratio})=>{
-    updateProgress(Math.round(ratio*100));
-  });
+    if (!ffmpeg) return;
+    ffmpeg.setProgress(({ ratio }) => {
+        const percent = Math.round(ratio * 100);
+        updateProgress(percent);
+    });
 }
 
-// Conversion
-async function convert(mode){
-  if(!currentFile){ alert("Select a video first"); return; }
-  try{
-    results.classList.add("hidden");
-    linksWrap.innerHTML=""; showLoader(); updateProgress(0);
-
-    await loadFFmpeg(); attachProgress();
-
-    const ts = Date.now();
-    const ext = (currentFile.name.split(".").pop() || "mp4");
-    const inputName = `input_${ts}.${ext}`;
-    const outputName = mode==="audio"?`audio_${ts}.mp3`:`video_${ts}_muted.mp4`;
-
-    const data = await fetchFile(currentFile);
-    ffmpeg.FS("writeFile", inputName, data);
-
-    if(mode==="audio"){
-      await ffmpeg.run("-i", inputName, "-q:a", "0", "-map", "a", outputName);
-    }else{
-      await ffmpeg.run("-i", inputName, "-an", "-vcodec","copy", outputName);
+// ===== Conversion =====
+async function runConversion(mode) {
+    if (!currentFile) {
+        alert("Please select a video first.");
+        return;
     }
 
-    const outData = ffmpeg.FS("readFile", outputName);
-    const blob = new Blob([outData.buffer], {type: mode==="audio"?"audio/mpeg":"video/mp4"});
-    const url = URL.createObjectURL(blob);
+    try {
+        resetResults();
+        showLoader();
+        updateProgress(0);
 
-    const a = document.createElement("a");
-    a.href = url; a.download=outputName;
-    a.textContent=`⬇️ ${outputName}`;
-    a.className="result-link";
-    linksWrap.appendChild(a);
-    results.classList.remove("hidden");
-    showNotice("Done ✅",4000);
+        await loadFFmpeg();
+        attachProgress();
 
-  }catch(err){ console.error(err); showNotice("Conversion failed. See console."); }
-  finally{ hideLoader(); updateProgress(0); }
+        const ts = Date.now();
+        const ext = currentFile.name.split(".").pop() || "mp4";
+        const inputName = `input_${ts}.${ext}`;
+        const outputName = mode === "audio" ? `audio_${ts}.mp3` : `video_${ts}_muted.mp4`;
+
+        const uint8 = await fetchFile(currentFile);
+        ffmpeg.FS("writeFile", inputName, uint8);
+
+        if (mode === "audio") {
+            await ffmpeg.run("-i", inputName, "-q:a", "0", "-map", "a", outputName);
+        } else {
+            await ffmpeg.run("-i", inputName, "-an", "-vcodec", "copy", outputName);
+        }
+
+        const outData = ffmpeg.FS("readFile", outputName);
+        const blob = new Blob([outData.buffer], { type: mode === "audio" ? "audio/mpeg" : "video/mp4" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = outputName;
+        a.textContent = `⬇️ ${outputName}`;
+        a.className = "result-link";
+        linksWrap.appendChild(a);
+        results.classList.remove("hidden");
+
+        showNotice("Conversion done ✅", 4000);
+
+    } catch (err) {
+        console.error("Conversion error:", err);
+        showNotice("Conversion failed. See console.", 6000);
+    } finally {
+        updateProgress(0);
+        hideLoader();
+    }
 }
 
-// Buttons
-extractAudioBtn.addEventListener("click", ()=>convert("audio"));
-extractVideoBtn.addEventListener("click", ()=>convert("video"));
+// ===== Buttons =====
+extractAudioBtn.addEventListener("click", () => runConversion("audio"));
+extractVideoBtn.addEventListener("click", () => runConversion("video"));
 
-// Check worker file
-(async()=>{
-  try{
-    const r = await fetch(CORE_WORKER,{method:"HEAD"});
-    if(r.ok) coopNote.textContent="Worker file exists — multi-thread possible if host allows COOP/COEP"; 
-    else coopNote.textContent="Worker file missing — single-thread fallback";
-  }catch(e){ coopNote.textContent="Cannot detect worker"; }
-})();
+// ===== Optional: display worker note =====
+coopNote.textContent = "GitHub Pages: multi-thread worker not supported, single-thread active.";
