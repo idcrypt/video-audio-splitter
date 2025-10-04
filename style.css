@@ -1,157 +1,168 @@
-/* General body & container */
 body {
-  background-color: #111;
-  color: #eee;
-  font-family: 'Segoe UI', sans-serif;
+  background: #0f0f1f;
+  color: #fff;
+  font-family: 'Arial', sans-serif;
   margin: 0;
   padding: 0;
 }
+
 .container {
-  max-width: 800px;
-  margin: 40px auto;
-  padding: 20px;
+  max-width: 720px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #12122b;
+  border-radius: 12px;
+  box-shadow: 0 0 20px #5e00ff33;
 }
 
-/* Neon header */
 .neon {
-  color: #9b59b6;
+  color: #c77fff;
   text-shadow:
-    0 0 5px #9b59b6,
-    0 0 10px #9b59b6,
-    0 0 20px #9b59b6,
-    0 0 40px #9b59b6;
+    0 0 5px #c77fff,
+    0 0 10px #c77fff,
+    0 0 20px #c77fff,
+    0 0 40px #c77fff;
   text-align: center;
 }
+
 .muted {
   color: #aaa;
   text-align: center;
-  font-size: 0.9em;
+  margin-bottom: 1.5rem;
 }
 
-/* File uploader */
 .uploader {
-  text-align: center;
-  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
 }
+
 .file-label {
+  position: relative;
   display: inline-block;
-  cursor: pointer;
-  background-color: #222;
-  padding: 10px 20px;
-  border-radius: 10px;
-  border: 1px solid #9b59b6;
 }
-.file-label:hover {
-  background-color: #333;
-}
+
 .file-label input {
   display: none;
 }
-.file-name {
-  margin-top: 10px;
-  color: #ccc;
+
+.file-btn {
+  background: #5e00ff;
+  color: #fff;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
 }
 
-/* Buttons */
+.file-btn:hover {
+  background: #a100ff;
+}
+
+.file-name {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
 .actions {
   display: flex;
   justify-content: center;
-  gap: 20px;
-  margin: 20px 0;
-}
-.neon-btn {
-  background-color: #222;
-  border: 2px solid #9b59b6;
-  color: #fff;
-  padding: 10px 20px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 1em;
-  transition: 0.3s;
-}
-.neon-btn:hover {
-  box-shadow: 0 0 20px #9b59b6, 0 0 30px #9b59b6 inset;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-/* Loader */
+.neon-btn {
+  background: #5e00ff;
+  border: none;
+  color: #fff;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 0 10px #5e00ff66;
+  transition: 0.3s;
+}
+
+.neon-btn:hover {
+  box-shadow: 0 0 20px #a100ff;
+  background: #a100ff;
+}
+
+.status {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
 .loader {
-  border: 6px solid #222;
-  border-top: 6px solid #9b59b6;
+  border: 5px solid #333;
+  border-top: 5px solid #c77fff;
   border-radius: 50%;
   width: 50px;
   height: 50px;
-  margin: 0 auto 15px;
+  margin: 0 auto 1rem auto;
   animation: spin 1s linear infinite;
 }
+
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% { transform: rotate(0deg);}
+  100% { transform: rotate(360deg);}
 }
 
-/* Progress bar */
 .progress-wrap {
-  max-width: 500px;
-  margin: 10px auto;
-  text-align: center;
+  margin-top: 0.5rem;
 }
+
 .progress-container {
-  background-color: #222;
+  background: #222;
+  width: 100%;
+  height: 20px;
   border-radius: 10px;
   overflow: hidden;
 }
+
 .progress-bar {
-  height: 16px;
-  background-color: #9b59b6;
+  height: 100%;
   width: 0%;
+  background: #c77fff;
+  transition: width 0.2s;
 }
+
 .progress-text {
-  margin-top: 5px;
-  font-size: 0.9em;
-  color: #eee;
+  margin-top: 0.3rem;
+  font-size: 0.9rem;
 }
 
-/* Notice */
 .notice {
-  text-align: center;
-  margin: 10px 0;
-  color: #f1c40f;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #ffcc00;
 }
 
-/* Results links */
 .results {
-  margin-top: 20px;
   text-align: center;
 }
+
 .result-link {
   display: block;
-  margin: 5px 0;
-  color: #9b59b6;
+  margin: 0.5rem 0;
+  color: #c77fff;
   text-decoration: none;
 }
+
 .result-link:hover {
   text-decoration: underline;
 }
 
-/* Ghost button (Clear) */
 .ghost-btn {
   background: none;
-  border: 1px solid #9b59b6;
-  color: #9b59b6;
-  padding: 6px 12px;
-  border-radius: 6px;
+  border: 1px solid #c77fff;
+  color: #c77fff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
   cursor: pointer;
 }
+
 .ghost-btn:hover {
-  box-shadow: 0 0 10px #9b59b6 inset;
+  background: #5e00ff22;
 }
-
-/* Footer */
-.foot {
-  margin-top: 30px;
-  text-align: center;
-  font-size: 0.8em;
-  color: #888;
-}
-
-/* Hidden class */
-.hidden { display: none; }
