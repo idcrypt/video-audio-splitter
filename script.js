@@ -1,18 +1,22 @@
-// cek global dari UMD
-const ffmpegLib = window.FFmpeg || window.ffmpeg;
+// cek global UMD
+const ffmpegLib = window.FFmpeg || window.FFmpegWASM;
 if (!ffmpegLib) {
   alert("FFmpeg WASM not loaded. Cek tag <script src=...> di index.html");
 }
 
+// ambil API
 const { createFFmpeg, fetchFile } = ffmpegLib;
 
 const ffmpeg = createFFmpeg({
   log: true,
+  corePath: "./libs/ffmpeg-core.js", // path engine
   progress: ({ ratio }) => {
     const percent = Math.round(ratio * 100);
+    console.log(`Progress: ${percent}%`);
     updateProgress(percent);
-  },
+  }
 });
+
 
 const uploader = document.getElementById("uploader");
 const extractAudioBtn = document.getElementById("extractAudioBtn");
