@@ -8,12 +8,13 @@
 <body>
   <div class="app-container">
     <h1>🎛️ Video & Audio Splitter</h1>
-    <p>Select a video file and split its audio track directly in your browser.</p>
+    <p>Split audio or mute video directly in your browser.</p>
 
     <input type="file" id="uploader" accept="video/*">
 
     <div class="buttons">
-      <button id="splitBtn">🎵 Extract Audio</button>
+      <button id="extractAudioBtn">🎵 Extract Audio</button>
+      <button id="extractVideoBtn">🎥 Extract Video (Mute)</button>
     </div>
 
     <!-- Loader Spinner -->
@@ -28,7 +29,7 @@
     <!-- Output Download -->
     <div id="output" class="hidden">
       <h2>Result:</h2>
-      <a id="downloadLink" href="#" download="output.mp3">Download Audio</a>
+      <a id="downloadLink" href="#" download>Download</a>
     </div>
   </div>
 
