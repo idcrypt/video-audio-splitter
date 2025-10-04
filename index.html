@@ -1,40 +1,67 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Video Audio Splitter</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Video Audio Splitter — Neon</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app-container">
-    <h1>🎛️ Video & Audio Splitter</h1>
-    <p>Split audio or mute video directly in your browser.</p>
+  <main class="container">
+    <header>
+      <h1 class="neon">⚡ Video & Audio Splitter</h1>
+      <p class="muted">Split audio (MP3) or create a muted video — fully client-side. Self-hosted WebAssembly (multi-thread if server supports COOP/COEP).</p>
+    </header>
 
-    <input type="file" id="uploader" accept="video/*">
+```
+<section class="uploader">
+  <label class="file-label">
+    <input id="uploader" type="file" accept="video/*" />
+    <span class="file-btn">Choose a video file</span>
+  </label>
+  <div class="file-name" id="fileName">No file chosen</div>
+</section>
 
-    <div class="buttons">
-      <button id="extractAudioBtn">🎵 Extract Audio</button>
-      <button id="extractVideoBtn">🎥 Extract Video (Mute)</button>
+<section class="actions">
+  <button id="extractAudioBtn" class="neon-btn">🎵 Extract Audio (MP3)</button>
+  <button id="extractVideoBtn" class="neon-btn">🎥 Extract Video (Mute)</button>
+</section>
+
+<section class="status">
+  <div id="loader" class="loader hidden" aria-hidden="true"></div>
+
+  <div id="progressWrap" class="progress-wrap hidden" aria-hidden="true">
+    <div id="progressContainer" class="progress-container">
+      <div id="progressBar" class="progress-bar" style="width:0%"></div>
     </div>
-
-    <!-- Loader Spinner -->
-    <div id="loader" class="loader hidden"></div>
-
-    <!-- Progress Bar -->
-    <div id="progress-container" class="hidden">
-      <div id="progress-bar"></div>
-      <span id="progress-text">0%</span>
-    </div>
-
-    <!-- Output Download -->
-    <div id="output" class="hidden">
-      <h2>Result:</h2>
-      <a id="downloadLink" href="#" download>Download</a>
-    </div>
+    <div id="progressText" class="progress-text">0%</div>
   </div>
 
-<script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js"></script>
-<script src="script.js"></script>
+  <div id="notice" class="notice hidden"></div>
+</section>
+
+<section id="results" class="results hidden">
+  <h2>Result</h2>
+  <div id="links" class="links"></div>
+  <button id="clearBtn" class="ghost-btn">Clear</button>
+</section>
+
+<footer class="foot">
+  <small>Self-host mode: libs/ffmpeg.js, ffmpeg-core.js, ffmpeg-core.wasm, ffmpeg-core.worker.js (worker optional).</small>
+  <small id="coopNote" class="muted">Note: multi-thread worker requires COOP/COEP headers on the host to enable SharedArrayBuffer.</small>
+</footer>
+```
+
+  </main>
+
+  <!-- Self-hosted UMD wrapper (already in your repo under libs/) -->
+
+  <script src="./libs/ffmpeg.js"></script>
+
+  <!-- Main logic -->
+
+  <script src="script.js"></script>
 
 </body>
 </html>
